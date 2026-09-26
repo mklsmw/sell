@@ -438,6 +438,37 @@
       </div>
     </div>
 
+    <!-- Announcement Notification Modal (สำหรับแจ้งเตือนจากเซลล์ H2, gid=1979626960) -->
+    <div
+      id="announcement-modal"
+      class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300"
+    >
+      <div
+        class="glass-panel max-w-md w-full rounded-2xl p-6 border border-purple-500/50 shadow-2xl transform scale-95 transition-all duration-300 relative text-center"
+      >
+        <div
+          class="w-14 h-14 bg-purple-600/20 text-purple-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/30"
+        >
+          <i class="fa-solid fa-bullhorn text-2xl"></i>
+        </div>
+        <h3
+          class="text-xl font-bold font-game tracking-wider text-purple-300 mb-3"
+        ></h3>
+        <div
+          id="announcement-text"
+          class="text-gray-200 text-base mb-6 leading-relaxed bg-black/30 p-4 rounded-xl border border-purple-950/60 max-h-60 overflow-y-auto"
+        >
+          <!-- ข้อความจากเซลล์ H2 -->
+        </div>
+        <button
+          onclick="closeAnnouncementModal()"
+          class="w-full py-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white rounded-xl font-semibold transition-all shadow-lg shadow-purple-900/40 cursor-pointer"
+        >
+          ปิด
+        </button>
+      </div>
+    </div>
+
     <footer class="bg-black/80 border-t border-purple-950/50 py-8 mt-20">
       <div class="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
         <p class="mb-2 font-game tracking-wider text-purple-400 text-base">
@@ -595,18 +626,55 @@
         }
       });
 
+      // ฟังก์ชันเลื่อนกลับขึ้นด้านบนทันทีโดยไม่ต้องค่อยๆ เลื่อน
       function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "instant" });
       }
 
       window.addEventListener("DOMContentLoaded", () => {
         loadImagesData();
+        checkAnnouncement(); // ตรวจสอบและแสดงป๊อปอัพแจ้งเตือนจากเซลล์ H2 (gid=1979626960)
       });
 
       function loadScript(url) {
         const script = document.createElement("script");
         script.src = url;
         document.body.appendChild(script);
+      }
+
+      // ฟังก์ชันเช็คและดึงข้อความจากเซลล์ H2 (gid=1979626960) มาแสดงแจ้งเตือน
+      function checkAnnouncement() {
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:receiveAnnouncement&gid=1979626960`;
+        loadScript(url);
+      }
+
+      function receiveAnnouncement(response) {
+        try {
+          if (response && response.table && response.table.rows) {
+            const rows = response.table.rows;
+            // เซลล์ H2 คือ แถวที่ 2 (index 1), คอลัมน์ H คือ index 7 (A=0, B=1, C=2, D=3, E=4, F=5, G=6, H=7)
+            if (rows.length >= 2 && rows[0].c && rows[0].c[7]) {
+              const cellValue = rows[0].c[7].v || rows[0].c[7].f || "";
+              const textStr = String(cellValue).trim();
+              if (textStr !== "") {
+                const modal = document.getElementById("announcement-modal");
+                const textContainer =
+                  document.getElementById("announcement-text");
+                textContainer.innerHTML = textStr.replace(/\n/g, "<br>");
+                modal.classList.remove("opacity-0", "pointer-events-none");
+                modal.firstElementChild.classList.remove("scale-95");
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Error loading announcement:", e);
+        }
+      }
+
+      function closeAnnouncementModal() {
+        const modal = document.getElementById("announcement-modal");
+        modal.classList.add("opacity-0", "pointer-events-none");
+        modal.firstElementChild.classList.add("scale-95");
       }
 
       function loadImagesData() {
@@ -2080,7 +2148,7 @@
         content.innerHTML = htmlContent;
 
         modal.classList.remove("opacity-0", "pointer-events-none");
-        modal.firstElementChild.classList.remove("scale-95");
+        modal.firstElementChild.classList.add("scale-95");
       }
     </script>
   </body>
