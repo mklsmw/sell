@@ -134,7 +134,10 @@
       <div
         class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4"
       >
-        <div class="flex items-center gap-3">
+        <div
+          class="flex items-center gap-3 cursor-pointer"
+          onclick="window.location.reload()"
+        >
           <div
             id="header-icon-container"
             class="w-10 h-10 rounded-lg bg-gradient-to-tr from-purple-600 to-cyan-500 flex items-center justify-center neon-glow-purple overflow-hidden"
@@ -283,6 +286,15 @@
             <span>2 แสงมืด ดองสกอ</span>
           </button>
 
+          <!-- 2แสงมืด ดองสกอ ตั้งแล้ว -->
+          <button
+            id="btn-asia-2ld-dong-set"
+            onclick="switchTab('asia_2ld_dong_set')"
+            class="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 text-gray-400 hover:text-white text-nowrap"
+          >
+            <span>2แสงมืด ดองสกอ ตั้งแล้ว</span>
+          </button>
+
           <!-- ฟินิกลม ดองสกอ -->
           <button
             id="btn-teshar-scroll"
@@ -303,11 +315,13 @@
         id="special-info-box"
         class="glass-panel p-5 rounded-2xl mb-6 border-l-4 border-purple-500 border-purple-900/40 shadow-xl animate-fadeIn"
       >
-        <h5
-          class="text-purple-400 font-bold font-game text-base mb-2.5 flex items-center gap-2"
-        >
-          <i class="fa-solid fa-circle-info"></i> รายละเอียดไอดี
-        </h5>
+        <div class="flex items-center justify-between mb-2.5">
+          <h5
+            class="text-purple-400 font-bold font-game text-base flex items-center gap-2 m-0"
+          >
+            <i class="fa-solid fa-circle-info"></i> รายละเอียดไอดี
+          </h5>
+        </div>
 
         <h5
           class="text-cyan-400 font-bold font-game text-base mb-2.5 flex items-center gap-2"
@@ -331,7 +345,7 @@
               type="text"
               id="search-input"
               onkeyup="applyFilters()"
-              placeholder="พิมพ์ชื่อหรือวันที่ (เช่น ผีมืด หรือ 7/7)"
+              placeholder="พิมพ์ชื่อหรือวันที่ (เช่น ผีมืด หรือ 7/7) หรือพิมพ์ + เพื่อหาไอดีคู่ 5 ดาวตัวอื่น"
               class="w-full bg-black/40 border border-purple-950/80 rounded-xl py-2.5 px-3 text-white focus:outline-none focus:border-purple-500 transition-all"
             />
           </div>
@@ -417,9 +431,15 @@
           <i class="fa-solid fa-xmark text-xl"></i>
         </button>
         <h3
-          class="text-lg sm:text-xl font-bold font-game tracking-wider text-purple-400 border-b border-purple-950 pb-3 mb-3 sm:mb-4 shrink-0"
+          class="text-lg sm:text-xl font-bold font-game tracking-wider text-purple-400 border-b border-purple-950 pb-3 mb-3 sm:mb-4 shrink-0 flex flex-col items-start"
         >
-          <i class="fa-solid fa-circle-info mr-2"></i>รายละเอียดไอดี
+          <span
+            ><i class="fa-solid fa-circle-info mr-2"></i>รายละเอียดไอดี</span
+          >
+          <span
+            id="modal-tab-title-badge"
+            class="text-lg sm:text-xl font-bold font-game tracking-wider text-cyan-400 mt-1"
+          ></span>
         </h3>
         <div
           id="modal-content"
@@ -504,6 +524,7 @@
       let sheetDong1112Loaded = false;
       let sheet2LDLoaded = false;
       let sheet2LDDongLoaded = false;
+      let sheet2LDDongSetLoaded = false;
       let sheetTesharLoaded = true; // โหลดข้อมูลในสคริปต์แบบ Static
 
       const TARGET_COLUMNS = [
@@ -523,6 +544,7 @@
       let dbAsiaDong1112 = [];
       let dbAsia2LD = [];
       let dbAsia2LDDong = [];
+      let dbAsia2LDDongSet = [];
 
       // ข้อมูลแท็บ ฟินิกลม ดองสกอ
       let dbTesharScroll = [
@@ -606,6 +628,7 @@
       let asia1LDUpdateTime = "";
       let asia2LDUpdateTime = "";
       let asia2LDDongUpdateTime = "";
+      let asia2LDDongSetUpdateTime = "";
 
       window.addEventListener("scroll", () => {
         const btn = document.getElementById("back-to-top");
@@ -727,6 +750,7 @@
         const urlAsiaDong1112 = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:receiveAsiaDong1112&sheet=${encodeURIComponent(tabAsiaDong1112)}`;
         const urlAsia2LD = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:receiveAsia2LD&sheet=${encodeURIComponent(tabAsia2LD)}`;
         const urlAsia2LDDong = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:receiveAsia2LDDong&gid=1080442891`;
+        const urlAsia2LDDongSet = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:receiveAsia2LDDongSet&gid=262008116`;
 
         loadScript(urlAsia1LD);
         loadScript(urlAsia200);
@@ -735,6 +759,7 @@
         loadScript(urlAsiaDong1112);
         loadScript(urlAsia2LD);
         loadScript(urlAsia2LDDong);
+        loadScript(urlAsia2LDDongSet);
       }
 
       function receiveAsia1LD(response) {
@@ -783,6 +808,16 @@
         checkAndRender();
       }
 
+      function receiveAsia2LDDongSet(response) {
+        dbAsia2LDDongSet = processSheetData(
+          response,
+          false,
+          "asia_2ld_dong_set",
+        );
+        sheet2LDDongSetLoaded = true;
+        checkAndRender();
+      }
+
       function checkAndRender() {
         if (currentTab === "asia_1ld" && sheet1Loaded) {
           renderAll();
@@ -797,6 +832,11 @@
         } else if (currentTab === "asia_2ld" && sheet2LDLoaded) {
           renderAll();
         } else if (currentTab === "asia_2ld_dong" && sheet2LDDongLoaded) {
+          renderAll();
+        } else if (
+          currentTab === "asia_2ld_dong_set" &&
+          sheet2LDDongSetLoaded
+        ) {
           renderAll();
         } else if (currentTab === "teshar_scroll" && sheetTesharLoaded) {
           renderAll();
@@ -871,7 +911,11 @@
         if (!response || !response.table) return [];
         const rows = response.table.rows;
 
-        if (tabType === "asia_2ld" || tabType === "asia_2ld_dong") {
+        if (
+          tabType === "asia_2ld" ||
+          tabType === "asia_2ld_dong" ||
+          tabType === "asia_2ld_dong_set"
+        ) {
           let updateTimeText = "";
           const maxSearchRows = Math.min(rows.length, 10);
           for (let i = 0; i < maxSearchRows; i++) {
@@ -896,6 +940,8 @@
             asia2LDUpdateTime = updateTimeText;
           } else if (tabType === "asia_2ld_dong") {
             asia2LDDongUpdateTime = updateTimeText;
+          } else if (tabType === "asia_2ld_dong_set") {
+            asia2LDDongSetUpdateTime = updateTimeText;
           }
         }
 
@@ -982,6 +1028,9 @@
         } else if (currentTab === "asia_2ld_dong") {
           document.getElementById("stat-update-time").innerText =
             asia2LDDongUpdateTime || "-";
+        } else if (currentTab === "asia_2ld_dong_set") {
+          document.getElementById("stat-update-time").innerText =
+            asia2LDDongSetUpdateTime || "-";
         }
 
         const items = [];
@@ -1027,7 +1076,10 @@
               : "";
             item["pic2"] = "";
             item["name2"] = "";
-          } else if (tabType === "asia_2ld_dong") {
+          } else if (
+            tabType === "asia_2ld_dong" ||
+            tabType === "asia_2ld_dong_set"
+          ) {
             item["date"] = rows[i].c[0]
               ? String(rows[i].c[0].v || rows[i].c[0].f || "").trim()
               : "";
@@ -1147,7 +1199,11 @@
             let valA = a[sortKey] || "";
             let valB = b[sortKey] || "";
 
-            if (sortKey === "scroll" && currentTab === "asia_2ld_dong") {
+            if (
+              sortKey === "scroll" &&
+              (currentTab === "asia_2ld_dong" ||
+                currentTab === "asia_2ld_dong_set")
+            ) {
               return sortDirection === "asc"
                 ? a["scroll_sum"] - b["scroll_sum"]
                 : b["scroll_sum"] - a["scroll_sum"];
@@ -1208,8 +1264,29 @@
         renderAll();
       }
 
+      function getCurrentTabLabel() {
+        const btnMap = {
+          asia_1ld: "1 แสงมืด",
+          asia_200: "1 แสงมืด วันเยอะ",
+          asia_dong: "1 แสงมืดดองสกอ",
+          asia_dong1112: "1 แสงมืด ดองสกอ 11+12 ปี",
+          asia_dong_notset: "1 แสงมืด ดองสกอ 12 ปี",
+          asia_2ld: "2 แสงมืด",
+          asia_2ld_dong: "2 แสงมืด ดองสกอ",
+          asia_2ld_dong_set: "2แสงมืด ดองสกอ ตั้งแล้ว",
+          teshar_scroll: "ฟินิกลม ดองสกอ",
+        };
+        return btnMap[currentTab] || "";
+      }
+
       function renderSpecialInfoBox() {
         const container = document.getElementById("special-info-content");
+        const badge = document.getElementById("current-tab-title-badge");
+        const modalBadge = document.getElementById("modal-tab-title-badge");
+        const tabTitleText = getCurrentTabLabel();
+        if (badge) badge.innerText = tabTitleText;
+        if (modalBadge) modalBadge.innerText = tabTitleText;
+
         if (!container) return;
         const img11 = imgMap["สกอ 11 ปี"] || "";
         const img12 = imgMap["สกอ 12 ปี"] || "";
@@ -1240,7 +1317,7 @@
             <div class="flex items-center gap-1.5">${tagLD} <span class="text-sm">สกอแสงมืด 1-3 ใบ</span></div>
           </div>
           <p class="mt-2 text-gray-300">• ไอดีแรกเกิด 300 วัน+ (เช็ควันไม่ได้) เควสผู้เล่นใหม่ครบ ไม่ปั้นมอน บางไอดีไม่มีบัพ 7 วัน </span></span><span class="text-cyan-400"> (มีเซิฟ Asia/Global/Europe)</span></p>
-          <p class="text-gray-300">• ตั้ง HIVE แล้วไม่มีเลข <span class="text-cyan-400">(ไม่มีสกินคอลแลบ)</span></p>
+          <p class="text-gray-300">• <span class="text-yellow-400">ตั้ง HIVE แล้วไม่มีเลข <span class="text-cyan-400">(ไม่มีสกินคอลแลบ)</span></p>
         `;
         } else if (currentTab === "asia_1ld") {
           container.innerHTML = `
@@ -1259,7 +1336,7 @@
           <div class="flex items-center flex-wrap gap-x-4 gap-y-2 mt-2 bg-black/30 p-3 rounded-xl border border-purple-950/40">
           <div class="flex items-center gap-1.5">${tag12} <span class="text-sm">สกอ 12 ปี 50-140 ใบ</span></div>
           </div>
-          <p class="mt-2 text-gray-300">• แสงมืดดองสกอ + ฟินิกลม ตั้ง HIVE แล้ว</p>
+          <p class="mt-2 text-gray-300">• แสงมืดดองสกอ + ฟินิกลม <span class="text-yellow-400">ตั้ง HIVE แล้ว</span></p>
           <p class="mt-2 text-gray-300">• ไอดีเริ่มต้น เควสผู้เล่นใหม่ครบ <span class="text-cyan-400">(ไม่มีสกินคอลแลบ)</span></p>
         `;
         } else if (currentTab === "asia_2ld") {
@@ -1275,6 +1352,14 @@
           <div class="flex items-center gap-1.5">${tag12} <span class="text-sm">สกอ 12 ปี 50-100 ใบ</span></div>
           </div>
           <p class="mt-2 text-gray-300">• ไอดีเริ่มต้น <span class="text-green-400">ยังไม่ตั้ง HIVE</span> เควสผู้เล่นใหม่ครบ ไม่ปั้นมอน มีประกันทุกไอดี <span class="text-cyan-400">(ไม่มีสกินคอลแลบ)</span></span></p>
+        `;
+        } else if (currentTab === "asia_2ld_dong_set") {
+          container.innerHTML = `
+         <div class="flex items-center flex-wrap gap-x-4 gap-y-2 mt-2 bg-black/30 p-3 rounded-xl border border-purple-950/40">
+          <div class="flex items-center gap-1.5">${tag11} <span class="text-sm">สกอ 11 ปี 50-160 ใบ</span></div>
+          <div class="flex items-center gap-1.5">${tag12} <span class="text-sm">สกอ 12 ปี 50-100 ใบ</span></div>
+          </div>
+          <p class="mt-2 text-gray-300">• ไอดีเริ่มต้น <span class="text-yellow-400">ตั้ง HIVE แล้ว ไม่มีเลข</span> เควสผู้เล่นใหม่ครบ ไม่ปั้นมอน มีประกันทุกไอดี <span class="text-cyan-400">(ไม่มีสกินคอลแลบ)</span></span></p>
         `;
         } else if (currentTab === "teshar_scroll") {
           container.innerHTML = `
@@ -1300,6 +1385,9 @@
         const btnAsiaDong1112 = document.getElementById("btn-asia-dong1112");
         const btnAsia2ld = document.getElementById("btn-asia-2ld");
         const btnAsia2ldDong = document.getElementById("btn-asia-2ld-dong");
+        const btnAsia2ldDongSet = document.getElementById(
+          "btn-asia-2ld-dong-set",
+        );
         const btnTesharScroll = document.getElementById("btn-teshar-scroll");
 
         const statBoxUpdate = document.getElementById("stat-box-update");
@@ -1317,6 +1405,7 @@
           btnAsiaDong1112,
           btnAsia2ld,
           btnAsia2ldDong,
+          btnAsia2ldDongSet,
           btnTesharScroll,
         ].forEach((btn) => {
           if (btn)
@@ -1357,6 +1446,17 @@
           if (statBoxUpdate) statBoxUpdate.style.display = "flex";
           document.getElementById("stat-update-time").innerText =
             asia2LDDongUpdateTime || "-";
+          if (statGridContainer)
+            statGridContainer.className =
+              "grid grid-cols-1 md:grid-cols-2 gap-4";
+          if (statBoxAvailable)
+            statBoxAvailable.className =
+              "glass-panel p-4 rounded-xl flex items-center gap-4 border-l-4 border-emerald-500 shadow-lg shadow-emerald-950/20";
+        } else if (tab === "asia_2ld_dong_set") {
+          if (btnAsia2ldDongSet) btnAsia2ldDongSet.className = activeClass;
+          if (statBoxUpdate) statBoxUpdate.style.display = "flex";
+          document.getElementById("stat-update-time").innerText =
+            asia2LDDongSetUpdateTime || "-";
           if (statGridContainer)
             statGridContainer.className =
               "grid grid-cols-1 md:grid-cols-2 gap-4";
@@ -1417,6 +1517,7 @@
         if (currentTab === "asia_dong1112") data = dbAsiaDong1112;
         if (currentTab === "asia_2ld") data = dbAsia2LD;
         if (currentTab === "asia_2ld_dong") data = dbAsia2LDDong;
+        if (currentTab === "asia_2ld_dong_set") data = dbAsia2LDDongSet;
         if (currentTab === "teshar_scroll") data = dbTesharScroll;
 
         const searchVal = document
@@ -1440,7 +1541,8 @@
                   ? ["name", "price", "hive"]
                   : currentTab === "asia_2ld"
                     ? ["date", "name", "name2", "price", "hive", "days"]
-                    : currentTab === "asia_2ld_dong"
+                    : currentTab === "asia_2ld_dong" ||
+                        currentTab === "asia_2ld_dong_set"
                       ? ["date", "name", "name2", "price", "scroll", "days"]
                       : currentTab === "teshar_scroll"
                         ? [
@@ -1475,7 +1577,10 @@
               checkHiveStr.includes("ตั้ง") ||
               checkHiveStr.includes("สกอ") ||
               checkHiveStr.includes("ดอง");
-            if (currentTab === "asia_dong1112") {
+            if (
+              currentTab === "asia_dong1112" ||
+              currentTab === "asia_2ld_dong_set"
+            ) {
               hasSet = true;
             }
 
@@ -1499,6 +1604,7 @@
         if (currentTab === "asia_dong1112") data = dbAsiaDong1112;
         if (currentTab === "asia_2ld") data = dbAsia2LD;
         if (currentTab === "asia_2ld_dong") data = dbAsia2LDDong;
+        if (currentTab === "asia_2ld_dong_set") data = dbAsia2LDDongSet;
         if (currentTab === "teshar_scroll") data = dbTesharScroll;
 
         let availableCount = 0;
@@ -1654,7 +1760,10 @@
             "hive",
             "days",
           ];
-        } else if (currentTab === "asia_2ld_dong") {
+        } else if (
+          currentTab === "asia_2ld_dong" ||
+          currentTab === "asia_2ld_dong_set"
+        ) {
           columnsToShow = [
             "date",
             "name",
@@ -1800,7 +1909,11 @@
               } else {
                 td.innerHTML = `<span class="${isSold ? "text-gray-500" : "text-cyan-400 font-bold font-game"}">${priceRaw}</span>`;
               }
-            } else if (key === "scroll" && currentTab === "asia_2ld_dong") {
+            } else if (
+              key === "scroll" &&
+              (currentTab === "asia_2ld_dong" ||
+                currentTab === "asia_2ld_dong_set")
+            ) {
               td.innerHTML = formatScrollDisplay(rawVal, isSold);
             } else if (key === "hive") {
               if (currentTab === "teshar_scroll") {
@@ -1839,7 +1952,8 @@
                 displayUrl = imgMap["ฟินิกลม"] || "";
               } else if (
                 currentTab === "asia_2ld" ||
-                currentTab === "asia_2ld_dong"
+                currentTab === "asia_2ld_dong" ||
+                currentTab === "asia_2ld_dong_set"
               ) {
                 if (key === "pic") {
                   displayUrl = imgMap[item["name"]] || "";
@@ -1943,7 +2057,8 @@
           img1Url = imgMap["ฟินิกลม"] || "";
         } else if (
           currentTab === "asia_2ld" ||
-          currentTab === "asia_2ld_dong"
+          currentTab === "asia_2ld_dong" ||
+          currentTab === "asia_2ld_dong_set"
         ) {
           img1Url = imgMap[item["name"]] || "";
           img2Url = imgMap[item["name2"]] || "";
@@ -1986,7 +2101,10 @@
           } else {
             hiveModalHTML = `<span class="${isSold ? "text-gray-500" : "glow-yellow"}">${hVal || "-"}</span>`;
           }
-        } else if (currentTab === "asia_2ld_dong") {
+        } else if (
+          currentTab === "asia_2ld_dong" ||
+          currentTab === "asia_2ld_dong_set"
+        ) {
           hiveModalHTML = formatScrollDisplay(item.scroll, isSold);
         } else if (currentTab === "asia_dong_notset") {
           hiveModalHTML = `<span class="${isSold ? "text-gray-500" : "glow-green"}">ยังไม่ตั้ง Hive</span>`;
@@ -2095,7 +2213,11 @@
           let valName1 = item.name || "-";
           let valName2 = "";
 
-          if (currentTab === "asia_2ld" || currentTab === "asia_2ld_dong") {
+          if (
+            currentTab === "asia_2ld" ||
+            currentTab === "asia_2ld_dong" ||
+            currentTab === "asia_2ld_dong_set"
+          ) {
             labelName1 = "ชื่อ 1";
             valName1 = item.name || "-";
             labelName2 = "ชื่อ 2";
