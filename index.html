@@ -2050,33 +2050,39 @@
         const content = document.getElementById("modal-content");
 
         const itemName = item["name"] || "";
-        let img1Url = "",
-          img2Url = "";
+        let monsterImages = [];
 
         if (currentTab === "teshar_scroll") {
-          img1Url = imgMap["ฟินิกลม"] || "";
+          if (imgMap["ฟินิกลม"]) monsterImages.push(imgMap["ฟินิกลม"]);
         } else if (
           currentTab === "asia_2ld" ||
           currentTab === "asia_2ld_dong" ||
           currentTab === "asia_2ld_dong_set"
         ) {
-          img1Url = imgMap[item["name"]] || "";
-          img2Url = imgMap[item["name2"]] || "";
+          if (imgMap[item["name"]]) monsterImages.push(imgMap[item["name"]]);
+          if (imgMap[item["name2"]]) monsterImages.push(imgMap[item["name2"]]);
         } else if (currentTab === "asia_dong_notset") {
-          img1Url = imgMap[item["date"]] || "";
-          img2Url = imgMap[item["name"]] || "";
+          if (imgMap[item["date"]]) monsterImages.push(imgMap[item["date"]]);
+          if (imgMap[item["name"]]) monsterImages.push(imgMap[item["name"]]);
         } else if (
           currentTab === "asia_dong" ||
           currentTab === "asia_dong1112"
         ) {
-          img1Url = imgMap[itemName] || "";
-          img2Url = imgMap["ฟินิกลม"] || "";
-        } else if (itemName.includes("+")) {
-          const parts = itemName.split("+");
-          img1Url = imgMap[parts[0].trim()] || "";
-          img2Url = imgMap[parts[1].trim()] || "";
+          if (imgMap[itemName]) monsterImages.push(imgMap[itemName]);
+          if (imgMap["ฟินิกลม"]) monsterImages.push(imgMap["ฟินิกลม"]);
         } else {
-          img1Url = imgMap[itemName] || "";
+          // แยกชื่อมอนสเตอร์ทุกตัวที่เชื่อมด้วย +, - หรือเว้นวรรค แล้วหาภาพของทุกตัว
+          const rawNames = itemName.split(/[\+\-\s]+/);
+          rawNames.forEach((name) => {
+            const cleanName = name.trim();
+            if (cleanName && imgMap[cleanName]) {
+              monsterImages.push(imgMap[cleanName]);
+            }
+          });
+          // ถ้าแยกแล้วไม่เจอสักรูป ให้ลองหาภาพจากชื่อเต็มตรงๆ
+          if (monsterImages.length === 0 && imgMap[itemName.trim()]) {
+            monsterImages.push(imgMap[itemName.trim()]);
+          }
         }
 
         const priceRaw = String(item["price"] || "").trim();
@@ -2129,6 +2135,16 @@
           priceModalHTML = `<span class="glow-yellow text-base">รออัพเดท</span>`;
         } else {
           priceModalHTML = `<span class="font-bold text-cyan-400 text-lg font-game">${priceRaw}</span>`;
+        }
+
+        let imagesHTML = "";
+        if (monsterImages.length > 0) {
+          imagesHTML = monsterImages
+            .map(
+              (url) =>
+                `<div class="text-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-purple-500/30 overflow-hidden shrink-0"><img src="${url}" class="w-full h-full object-cover bg-darkBg rounded-xl"></div>`,
+            )
+            .join("");
         }
 
         let htmlContent = "";
@@ -2188,9 +2204,7 @@
               <span class="text-xs text-gray-400 font-game uppercase">Hive ID Status</span>
               <div>${hiveModalHTML}</div>
             </div>
-            <div class="flex gap-4 justify-center bg-black/40 p-2.5 sm:p-3 rounded-xl border border-purple-950 mb-2 sm:mb-3">
-              ${img1Url ? `<div class="text-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-purple-500/30 overflow-hidden"><img src="${img1Url}" class="w-full h-full object-cover bg-darkBg rounded-xl"></div>` : ""}
-            </div>
+            ${imagesHTML ? `<div class="flex gap-4 justify-center flex-wrap bg-black/40 p-2.5 sm:p-3 rounded-xl border border-purple-950 mb-2 sm:mb-3">${imagesHTML}</div>` : ""}
             <div class="grid grid-cols-2 gap-2.5 sm:gap-3 text-sm">
               <div class="bg-black/30 p-2.5 rounded-lg border border-purple-950/40 col-span-2 sm:col-span-1">
                 <span class="text-xs text-gray-400 block">ราคา</span>
@@ -2230,10 +2244,7 @@
           }
 
           htmlContent = `
-            <div class="flex gap-4 justify-center bg-black/40 p-2.5 sm:p-3 rounded-xl border border-purple-950">
-              ${img1Url ? `<div class="text-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-purple-500/30 overflow-hidden"><img src="${img1Url}" class="w-full h-full object-cover bg-darkBg rounded-xl"></div>` : ""}
-              ${img2Url ? `<div class="text-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-purple-500/30 overflow-hidden"><img src="${img2Url}" class="w-full h-full object-cover bg-darkBg rounded-xl"></div>` : ""}
-            </div>
+            ${imagesHTML ? `<div class="flex gap-4 justify-center flex-wrap bg-black/40 p-2.5 sm:p-3 rounded-xl border border-purple-950">${imagesHTML}</div>` : ""}
             <div class="grid grid-cols-2 gap-2.5 sm:gap-3 text-sm">
               <div class="bg-black/30 p-2.5 rounded-lg border border-purple-950/40 col-span-2 sm:col-span-1">
                 <span class="text-xs text-gray-400 block">${labelName1}</span>
@@ -2253,9 +2264,13 @@
               </div>
               ${
                 !hideDateSection
-                  ? `<div class="bg-black/30 p-2.5 rounded-lg border border-purple-950/40">
+                  ? `<div class="bg-black/30 p-2.5 rounded-lg border border-purple-950/40 col-span-2 sm:col-span-1">
                 <span class="text-xs text-gray-400 block">วันที่สร้างไอดี</span>
                 <span class="text-gray-200">${item.full_date || item.date || "-"}</span>
+              </div>
+              <div class="bg-black/30 p-2.5 rounded-lg border border-purple-950/40 col-span-2 sm:col-span-1">
+                <span class="text-xs text-gray-400 block">จำนวนวัน</span>
+                <span class="font-game font-semibold text-purple-300 text-base">${item.days || "-"}</span>
               </div>`
                   : ""
               }
